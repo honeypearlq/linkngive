@@ -1,54 +1,75 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const ItemInfo = ({ route, navigation }) => {
-  const { item } = route.params;
+  const { item } = route.params; // Receive the item passed via route.params
+  const [isLiked, setIsLiked] = useState(false); 
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Ionicons 
-          name="chevron-back" 
-          size={24} 
-          color="black" 
+        <Ionicons
+          name="chevron-back"
+          size={30}
+          color="#74112f"
           onPress={() => {
-            // Reset the stack and navigate to Home when going back from ItemInfo
             navigation.reset({
-              index: 0, // Clear all previous screens
-              routes: [{ name: 'Home' }] // Navigate to Home
+              index: 0,
+              routes: [{ name: 'Home' }], 
             });
           }}
         />
-        <Text style={styles.title}>Item Info</Text>
-        <Ionicons 
-          name="person-circle-outline" 
-          size={24} 
-          color="black" 
-          onPress={() => navigation.navigate('Profile')} // Navigate to Profile screen
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Item Info</Text>
+        </View>
+      </View>
+
+      {/* Description */}
+      <View style={styles.textWrapper}>
+        <Text style={styles.welcomeText}>{item.name}</Text>
+        <Text style={styles.subText}>
+          Check out this donated item. Message the giver for more information or save it for later by liking!
+        </Text>
+      </View>
+
+      {/* Image Frame */}
+      <View style={styles.imageContainer}>
+        <Image
+          style={styles.image}
+          source={{ uri: item.image || 'https://via.placeholder.com/150' }}
         />
       </View>
 
-      <Text style={styles.description}>
-        Explore the details of the donated item, message the giver for more information. You can also like the item for future reference!
-      </Text>
-
-      <View style={styles.imageContainer}>
-        <Image style={styles.imagePlaceholder} source={{ uri: 'https://via.placeholder.com/150' }} />
+      {/* Item Details */}
+      <View style={styles.detailsContainer}>
+        <Text style={styles.itemDetail}>
+          <Text style={styles.label}>Location:</Text> {item.location}
+        </Text>
+        <Text style={styles.itemDetail}>
+          <Text style={styles.label}>Distance:</Text> 2.3 km
+        </Text>
+        <Text style={styles.itemDetail}>
+          <Text style={styles.label}>Donor Name:</Text> {item.sender}
+        </Text>
       </View>
 
-      <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.itemDetails}>Category: {item.category}</Text>
-      <Text style={styles.itemDetails}>Condition: {item.condition}</Text>
-      <Text style={styles.itemDetails}>Location: {item.location}</Text>
+      {/* Buttons */}
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity style={styles.actionButton}>
+          <Text style={styles.buttonText}>Message Item Owner</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.messageButton}>
-        <Text style={styles.messageButtonText}>Message Item Owner</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.likeButton}>
-        <Ionicons name="heart-outline" size={24} color="black" />
-      </TouchableOpacity>
+        {/* Like Button */}
+        <TouchableOpacity style={styles.likeButton} onPress={() => setIsLiked(!isLiked)}>
+          <Ionicons
+            name={isLiked ? 'heart' : 'heart-outline'}
+            size={24}
+            color={isLiked ? 'red' : 'black'}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -56,62 +77,110 @@ const ItemInfo = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#faf4f2',
+    paddingTop: Platform.OS === 'android' ? 70 : 50,
+    paddingHorizontal: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 20,
+  },
+  headerTitleContainer: {
+    flex: 1, 
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: 'Raleway_700Bold',
+    color: '#2f332a',
+    borderBottomColor: '#74112f', 
+    borderBottomWidth: 5,
+    textAlign: 'center', 
+    width: '40%',
+    paddingBottom: 5,
+    marginRight: 35,
+  },
+  textWrapper: {
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  welcomeText: {
+    fontSize: 24,
+    fontFamily: 'Raleway_700Bold', 
+    color: '#2f332a',
+    marginBottom: 5,
+    textAlign: 'center',
   },
-  description: {
-    fontSize: 14,
+  subText: {
+    fontSize: 16,
+    fontFamily: 'Raleway_400Regular', 
     color: '#888',
-    marginBottom: 20,
     textAlign: 'center',
   },
   imageContainer: {
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  image: {
+    width: 200,
+    height: 200,
+    backgroundColor: '#f0f0f0',
+  },
+  detailsContainer: {
     marginBottom: 20,
   },
-  imagePlaceholder: {
-    width: 200,
-    height: 150,
-    backgroundColor: '#d9d9d9',
-    borderRadius: 8,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  itemDetail: {
+    fontSize: 16,
+    fontFamily: 'Raleway_400Regular', 
+    color: '#333',
     marginBottom: 10,
-    textAlign: 'center',
   },
-  itemDetails: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 5,
-  },
-  messageButton: {
-    backgroundColor: '#000',
-    borderRadius: 10,
-    paddingVertical: 10,
-    marginTop: 20,
-  },
-  messageButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  label: {
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#000',
+    fontFamily: 'Raleway_700Bold', 
+  },
+  buttonsContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  actionButton: {
+    backgroundColor: '#74112f',
+    borderRadius: 10, 
+    paddingVertical: 12,
+    paddingHorizontal: 30, 
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10, 
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold', 
+    color: '#fff', 
   },
   likeButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
+    backgroundColor: '#fff',
+    borderRadius: 25, 
+    width: 40, 
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#74112f',
+  },
+  heartText: {
+    fontSize: 20,
+    color: '#74112f',
+    fontWeight: 'bold',
   },
 });
 

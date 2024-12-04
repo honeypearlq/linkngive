@@ -1,111 +1,183 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Import Raleway fonts from Expo Google Fonts package
+import { Raleway_400Regular, Raleway_700Bold } from '@expo-google-fonts/raleway';
 
 const Home = ({ navigation }) => {
+  const [fontsLoaded] = useFonts({
+    Raleway_400Regular, 
+    Raleway_700Bold,   
+  });
+
+  if (!fontsLoaded) {
+    SplashScreen.preventAutoHideAsync();
+    return null; 
+  } else {
+    SplashScreen.hideAsync(); 
+  }
+
   return (
-    <View style={styles.container}>
+    <ImageBackground 
+      source={require('../assets/background.png')} 
+      style={styles.container} 
+    >
       {/* Header */}
       <View style={styles.header}>
-        {/* Go back only if there is a screen to go back to */}
-        <TouchableOpacity onPress={() => navigation.canGoBack() && navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color="#000" />
+        {/* Menu Button */}
+        <TouchableOpacity>
+          <Icon name="menu" size={24} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.headerIcons}>
-          {/* Menu Button */}
-          <TouchableOpacity style={styles.menuButton}>
-            <Icon name="menu" size={24} color="#000" />
-          </TouchableOpacity>
-          {/* Profile Button */}
-          <TouchableOpacity 
-            style={styles.profileButton} 
-            onPress={() => navigation.navigate('Profile')} // Navigates to Profile screen
-          >
-            <Icon name="user" size={24} color="#000" />
-          </TouchableOpacity>
-        </View>
+
+        {/* App Title */}
+        <Text style={styles.headerTitle}>Link 'n' Give</Text>
+
+        {/* Profile Button */}
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <Icon name="user" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchBar}>
+        <Icon name="search" size={20} color="#888" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search donations or items..."
+          placeholderTextColor="#888"
+        />
       </View>
 
       {/* Welcome Message */}
-      <Text style={styles.welcomeText}>Glad you're here! Let’s make a positive impact.</Text>
-      <Text style={styles.subText}>What would you like to do today?</Text>
+      <View style={styles.textWrapper}>
+        <Text style={styles.welcomeText}>Welcome! Are you ready to make a difference?</Text>
+        <Text style={styles.subText}>What would you like to do today?</Text>
+      </View>
 
       {/* Centered Action Buttons */}
       <View style={styles.buttonsContainer}>
         {/* Find Nearby Donations Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => navigation.navigate('FindNearbyDonations')} // Navigates to FindNearbyDonations screen
+          onPress={() => navigation.navigate('FindNearbyDonations')}
         >
-          <Icon name="search" size={60} color="#000" />
+          <Image 
+            source={require('../assets/find.png')}  
+            style={styles.buttonImage} 
+          />
           <Text style={styles.buttonText}>Find Nearby Donations</Text>
         </TouchableOpacity>
 
         {/* Donate Item Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => navigation.navigate('DonateItem')} // Navigates to DonateItem screen
+          onPress={() => navigation.navigate('DonateItem')}
         >
-          <Icon name="gift" size={60} color="#000" />
-          <Text style={styles.buttonText}>Donate Item</Text>
+          <Image 
+            source={require('../assets/donate.png')}  
+            style={styles.buttonImage}
+          />
+          <Text style={styles.buttonText}>Donate Items</Text>
         </TouchableOpacity>
       </View>
-    </View>
+
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#faf4f2',
     paddingHorizontal: 20,
     paddingTop: 60,
-    justifyContent: 'flex-start', // Align the header at the top
+    justifyContent: 'flex-start',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: '#800020',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    width: '100%',
   },
-  headerIcons: {
+  headerTitle: {
+    fontSize: 20,
+    fontFamily: 'Raleway_700Bold',
+    color: '#fff',
+  },
+  searchBar: {
     flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 5,
+    padding: 2,
+    marginVertical: 20,
+    borderColor: "#74112f",
+    borderBottomWidth: 1,
+    marginBottom: 20,
+    paddingLeft: 15,
+    fontSize: 16,
+    fontFamily: "Raleway_700Bold",
   },
-  menuButton: {
-    marginRight: 15,
+  searchInput: {
+    marginLeft: 10,
+    fontSize: 16,
+    flex: 1,
+    fontFamily: 'Raleway_400Regular',
+    color: '#000',
   },
-  profileButton: {
-    marginRight: 15,
+  textWrapper: {
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginBottom: 80, 
+  },
+  buttonsContainer: {
+    position: 'absolute', 
+    bottom: 50, 
+    left: 0,
+    right: 0,
+    alignItems: 'center', 
   },
   welcomeText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Raleway_700Bold',
+    color: '#2f332a',
     marginBottom: 5,
+    textAlign: 'center', 
   },
   subText: {
     fontSize: 16,
+    fontFamily: 'Raleway_400Regular',
     color: '#888',
-    marginBottom: 30,
-  },
-  buttonsContainer: {
-    flex: 1, // This ensures the buttons take up available space and are centered
-    justifyContent: 'center', // Centers the buttons vertically
-    alignItems: 'center', // Centers the buttons horizontally
+    textAlign: 'center', 
+    marginBottom: 20,
   },
   actionButton: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 15, // Makes the buttons a bit rounder
-    paddingVertical: 30, // Makes the button taller
-    paddingHorizontal: 40, // Makes the button wider
+    backgroundColor: '#74112f',
+    borderRadius: 15,
+    paddingVertical: 40,
+    paddingHorizontal: 10,
     alignItems: 'center',
-    marginBottom: 25, // Space between buttons
-    width: '80%', // Makes the button width responsive and centered
+    marginBottom: 20,
+    width: '80%',
+    marginTop: 10, 
   },
   buttonText: {
-    fontSize: 18, // Increased font size for visibility
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontFamily: 'Raleway_700Bold',
+    color: '#fff',
     textAlign: 'center',
     marginTop: 10,
+  },
+  buttonImage: {
+    width: 80, 
+    height: 80, 
+    marginBottom: 10, 
   },
 });
 

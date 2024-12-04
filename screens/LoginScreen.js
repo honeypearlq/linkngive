@@ -4,8 +4,8 @@ import { auth } from '../firebase';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
-import { useFonts } from 'expo-font';  // Import expo-font for font loading
-import * as SplashScreen from 'expo-splash-screen'; // For splash screen management
+import { useFonts } from 'expo-font';  
+import * as SplashScreen from 'expo-splash-screen'; 
 
 // Import Raleway fonts from Expo Google Fonts package
 import { Raleway_400Regular, Raleway_700Bold } from '@expo-google-fonts/raleway';
@@ -20,16 +20,15 @@ const LoginScreen = ({ navigation }) => {
 
   // Load fonts using the expo-font hook
   const [fontsLoaded] = useFonts({
-    Raleway_400Regular, // Raleway Regular
-    Raleway_700Bold,    // Raleway Bold
+    Raleway_400Regular, 
+    Raleway_700Bold,    
   });
 
-  // Show splash screen until fonts are loaded
   if (!fontsLoaded) {
     SplashScreen.preventAutoHideAsync();
-    return null; // Or a loading component
+    return null; 
   } else {
-    SplashScreen.hideAsync(); // Hide splash screen when fonts are ready
+    SplashScreen.hideAsync(); 
   }
 
   const handleLogin = async () => {
@@ -158,14 +157,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#faf4f2', // Background color for the screen
+    backgroundColor: '#faf4f2', 
   },
   title: {
     fontSize: 24,
     fontWeight: 'normal',
-    textAlign: 'center', // Centered title
+    textAlign: 'center', 
     marginBottom: 20,
-    fontFamily: 'Raleway_700Bold', // Apply Raleway Bold font to title
+    fontFamily: 'Raleway_700Bold', 
     color: '#2f332a',
   },
   input: {
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
-    fontFamily: 'Raleway_400Regular', // Font for input fields
+    fontFamily: 'Raleway_400Regular', 
     borderBottomColor: '#74112f',
   },
   passwordContainer: {
@@ -187,12 +186,12 @@ const styles = StyleSheet.create({
   inputPassword: {
     flex: 1,
     height: 40,
-    fontFamily: 'Raleway_400Regular', // Font for password field
+    fontFamily: 'Raleway_400Regular', 
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // Make sure the two elements are spaced apart
+    justifyContent: 'space-between', 
     marginBottom: 20,
   },
   leftSideContainer: {
@@ -204,12 +203,12 @@ const styles = StyleSheet.create({
   },
   label: {
     marginRight: 20,
-    fontFamily: 'Raleway_400Regular', // Font for the label
+    fontFamily: 'Raleway_400Regular', 
   },
   forgotPassword: {
-    fontFamily: 'Raleway_700Bold', // Ensure bold for Forgot Password
+    fontFamily: 'Raleway_700Bold', 
     color: '#74112f',
-    marginTop: 10,  // Adjust margin to ensure it is below the login button
+    marginTop: 10,  
     textAlign: 'center',
   },
   loginButton: {
@@ -221,17 +220,17 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: 'white',
-    fontFamily: 'Raleway_700Bold', // Ensure bold for Login Button
+    fontFamily: 'Raleway_700Bold', 
     fontSize: 18
   },
   signupText: {
     textAlign: 'center',
     marginTop: 20,
-    fontFamily: 'Raleway_400Regular', // Font for signup text
+    fontFamily: 'Raleway_400Regular', 
   },
   signupLink: {
     color: '#74112f',
-    fontFamily: 'Raleway_700Bold', // Ensure bold for Sign Up link
+    fontFamily: 'Raleway_700Bold', 
   },
   error: {
     color: 'red',

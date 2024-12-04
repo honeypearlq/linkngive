@@ -138,11 +138,11 @@ const Profile = ({ navigation }) => {
       const credential = EmailAuthProvider.credential(email, password);
       try {
         await reauthenticateWithCredential(user, credential);
-        return true; // Re-authentication successful
+        return true; 
       } catch (error) {
         console.error("Reauthentication failed:", error);
         Alert.alert("Error", "Reauthentication failed. Please try again.");
-        return false; // Re-authentication failed
+        return false; 
       }
     }
     return false;
@@ -300,8 +300,8 @@ const Profile = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#faf4f2",
-    paddingTop: Platform.OS === "android" ? 50 : 30,
+    backgroundColor: '#faf4f2',
+    paddingTop: Platform.OS === 'android' ? 70 : 50,
   },
   scrollContainer: {
     padding: 30,
@@ -366,4 +366,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Profile
+export default Profile;
