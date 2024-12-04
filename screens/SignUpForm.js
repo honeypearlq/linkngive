@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // For the eye icon
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase'; // Ensure correct import for db
+import { doc, setDoc, collection } from 'firebase/firestore'; // Ensure correct import for Firestore
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -10,8 +12,9 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
-  // Form validation for name, email, and password
+  // Validate form before submission
   const validateForm = () => {
     if (!name) {
       Alert.alert("Validation Error", "Please enter your name.");
@@ -32,15 +35,30 @@ const SignUp = () => {
     return true;
   };
 
+  // Handle SignUp process
   const handleSignUp = async () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('User signed up:', userCredential.user);
+      const user = userCredential.user;
+
+      // Create a document in Firestore for the new user
+      const userRef = doc(collection(db, "users"), user.uid);
+
+      await setDoc(userRef, {
+        name: name,
+        email: email,
+        phone: '',
+        address: '',
+        profileImage: '',
+        dob: '',
+      });
+
+      console.log('User signed up and data saved:', user);
       Alert.alert("Success", "Account created successfully!");
-      navigation.navigate('Login'); // Navigates to the Login screen
+      navigation.navigate('Home'); // Navigate to the Home page
     } catch (error) {
       console.error('Error signing up:', error.code, error.message);
       Alert.alert("Error Signing Up", error.message);
@@ -51,42 +69,53 @@ const SignUp = () => {
 
   return (
     <View style={styles.signupContainer}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
       <View style={styles.logoContainer}>
         <Text style={styles.logoText}>LINK 'N' GIVE</Text>
       </View>
-      <Text style={styles.title}>Create New Account</Text>
+      <Text style={styles.title}>Empower Generosity, Together</Text>
 
       <View style={styles.signupForm}>
         <TextInput
-          placeholder="Name"
+          placeholder=" Name"
           value={name}
           onChangeText={setName}
           style={styles.inputField}
         />
         <TextInput
-          placeholder="Email"
+          placeholder=" Email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           style={styles.inputField}
         />
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.inputField}
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!passwordVisible}
+            style={styles.passwordField}
+          />
+          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+            <Ionicons
+              name={passwordVisible ? 'eye-off' : 'eye'}
+              size={24}
+              color="#777"
+              style={styles.eyeIcon}
+            />
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity onPress={handleSignUp} style={styles.submitButton} disabled={isLoading}>
-          {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.submitButtonText}>SIGN UP</Text>}
+          {isLoading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>SIGN UP</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       <Text style={styles.footerText}>
-        Have an account?{' '}
+        Already have an account?{' '}
         <Text style={styles.linkText} onPress={() => navigation.navigate('Login')}>
           Log In
         </Text>
@@ -100,16 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-  },
-  backButtonText: {
-    fontSize: 20,
-    color: '#333',
+    backgroundColor: '#faf4f2',
   },
   logoContainer: {
     alignItems: 'center',
@@ -118,42 +138,63 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#2f332a',
+    fontFamily: 'Raleway_700Bold',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     textAlign: 'center',
     marginBottom: 20,
+    color: '#2f332a',
+    fontFamily: 'Raleway_700Bold',
   },
   signupForm: {
     marginBottom: 20,
   },
   inputField: {
     height: 50,
-    borderColor: '#ddd',
-    borderWidth: 1,
+    borderBottomColor: '#74112f',
+    borderBottomWidth: 1,
     marginBottom: 15,
     paddingHorizontal: 10,
-    borderRadius: 5,
+    fontFamily: 'Raleway_400Regular',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomColor: '#74112f',
+    borderBottomWidth: 1,
+    marginBottom: 15,
+    paddingHorizontal: 8,
+  },
+  passwordField: {
+    flex: 1,
+    height: 50,
+    fontFamily: 'Raleway_400Regular',
+  },
+  eyeIcon: {
+    marginLeft: 10,
+    color: '#74112f',
   },
   submitButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#74112f',
     padding: 15,
-    alignItems: 'center',
     borderRadius: 5,
+    alignItems: 'center',
   },
   submitButtonText: {
-    color: '#FFF',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'Raleway_700Bold',
   },
   footerText: {
     textAlign: 'center',
-    marginTop: 20,
-    color: '#333',
+    marginTop: 15,
+    fontFamily: 'Raleway_400Regular',
   },
   linkText: {
-    color: '#007AFF',
-    fontWeight: 'bold',
+    color: '#74112f',
+    fontFamily: 'Raleway_700Bold',
   },
 });
 

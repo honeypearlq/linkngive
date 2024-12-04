@@ -1,27 +1,42 @@
-// Import necessary Firebase functions
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth"; // For authentication
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  getFirestore,
+  Timestamp,
+  doc,
+  updateDoc,
+  getDoc,
+  collection,
+  addDoc,
+  deleteDoc,  // Ensure deleteDoc is exported here
+} from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import {
+  FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_APP_ID,
+  FIREBASE_MEASUREMENT_ID,
+} from "@env";
 
-// Firebase configuration object
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAsaNbTThqKbIJpYdgRxCnGThw8PI05pyE",
-  authDomain: "linkngive.firebaseapp.com",
-  projectId: "linkngive",
-  storageBucket: "linkngive.appspot.com", // Corrected the storage bucket domain
-  messagingSenderId: "704189488176",
-  appId: "1:704189488176:web:39f8b0c14cc0a79a0fe1f5",
-  measurementId: "G-RH58FRYPKE" // Optional, won't be used in React Native
+  apiKey: FIREBASE_API_KEY,
+  authDomain: FIREBASE_AUTH_DOMAIN,
+  projectId: FIREBASE_PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+  appId: FIREBASE_APP_ID,
+  measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-let app;
-if (!initializeApp.length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = initializeApp(firebaseConfig);
-}
+// Initialize Firebase app only if it hasn't been initialized already
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Export any required services (e.g., authentication)
-const auth = getAuth(app); // For Firebase Authentication
+// Initialize Firestore and Authentication
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { app, auth };
+// Export services and utility functions
+export { db, auth, Timestamp, doc, updateDoc, getDoc, collection, addDoc, deleteDoc };

@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase'; // Make sure this imports your Firebase configuration
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../firebase';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import Checkbox from 'expo-checkbox';
+import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';  // Import expo-font for font loading
+import * as SplashScreen from 'expo-splash-screen'; // For splash screen management
+
+// Import Raleway fonts from Expo Google Fonts package
+import { Raleway_400Regular, Raleway_700Bold } from '@expo-google-fonts/raleway';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Updated handleLogin function with enhanced error handling
+  // Load fonts using the expo-font hook
+  const [fontsLoaded] = useFonts({
+    Raleway_400Regular, // Raleway Regular
+    Raleway_700Bold,    // Raleway Bold
+  });
+
+  // Show splash screen until fonts are loaded
+  if (!fontsLoaded) {
+    SplashScreen.preventAutoHideAsync();
+    return null; // Or a loading component
+  } else {
+    SplashScreen.hideAsync(); // Hide splash screen when fonts are ready
+  }
+
   const handleLogin = async () => {
     if (!email || !password) {
       setError('Please fill out both fields.');
@@ -20,7 +41,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in successfully');
-      navigation.navigate('Home'); // Navigate to the 'Home' screen on successful login
+      navigation.navigate('Home');
     } catch (err) {
       if (err.code === 'auth/wrong-password') {
         setError('Incorrect password. Please try again.');
@@ -35,41 +56,74 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Please enter your email address.');
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setIsModalVisible(true); // Show modal on successful email send
+    } catch (err) {
+      if (err.code === 'auth/invalid-email') {
+        setError('Invalid email format.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No user found with this email.');
+      } else {
+        setError('Failed to send password reset email. Please try again.');
+      }
+      console.error('Error sending password reset email:', err);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign In to Stay Connected</Text>
+      {/* Log In title */}
+      <Text style={styles.title}>Log In to Empower Generosity</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Email or Phone Number"
+        placeholder=" Email"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      <View style={styles.checkboxContainer}>
-        <Checkbox
-          value={rememberMe}
-          onValueChange={setRememberMe}
-          style={styles.checkbox}
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.inputPassword}
+          placeholder="Password"
+          secureTextEntry={!isPasswordVisible}
+          value={password}
+          onChangeText={setPassword}
         />
-        <Text style={styles.label}>Remember Me</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
+        <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+          <Ionicons name={isPasswordVisible ? 'eye-off' : 'eye'} size={20} color="#74112f" />
         </TouchableOpacity>
+      </View>
+
+      {/* Position Remember Me on the left */}
+      <View style={styles.checkboxContainer}>
+        <View style={styles.leftSideContainer}>
+          <Checkbox
+            value={rememberMe}
+            onValueChange={setRememberMe}
+            style={styles.checkbox}
+          />
+          <Text style={styles.label}>Remember Me</Text>
+        </View>
       </View>
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginText}>LOGIN</Text>
       </TouchableOpacity>
 
+      {/* Forgot Password link now under login button */}
+      <TouchableOpacity onPress={handleForgotPassword}>
+        <Text style={styles.forgotPassword}>Forgot Password?</Text>
+      </TouchableOpacity>
+
+      {/* Don't have an account? */}
       <Text style={styles.signupText}>
         Don't have an account?{' '}
         <Text style={styles.signupLink} onPress={() => navigation.navigate('SignUp')}>
@@ -77,7 +131,24 @@ const LoginScreen = ({ navigation }) => {
         </Text>
       </Text>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null} {/* Error message */}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {/* Modal for confirmation of password reset email */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>A password reset email has been sent to {email}.</Text>
+            <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -87,36 +158,62 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#faf4f2', // Background color for the screen
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 'normal',
+    textAlign: 'center', // Centered title
     marginBottom: 20,
+    fontFamily: 'Raleway_700Bold', // Apply Raleway Bold font to title
+    color: '#2f332a',
   },
   input: {
     height: 40,
     borderBottomWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
+    fontFamily: 'Raleway_400Regular', // Font for input fields
+    borderBottomColor: '#74112f',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    borderBottomColor: '#74112f',
+  },
+  inputPassword: {
+    flex: 1,
+    height: 40,
+    fontFamily: 'Raleway_400Regular', // Font for password field
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between', // Make sure the two elements are spaced apart
     marginBottom: 20,
+  },
+  leftSideContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   checkbox: {
     marginRight: 10,
   },
   label: {
     marginRight: 20,
+    fontFamily: 'Raleway_400Regular', // Font for the label
   },
   forgotPassword: {
-    fontWeight: 'bold',
-    color: 'black',
+    fontFamily: 'Raleway_700Bold', // Ensure bold for Forgot Password
+    color: '#74112f',
+    marginTop: 10,  // Adjust margin to ensure it is below the login button
+    textAlign: 'center',
   },
   loginButton: {
-    backgroundColor: 'black',
+    backgroundColor: '#74112f',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
@@ -124,20 +221,50 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontFamily: 'Raleway_700Bold', // Ensure bold for Login Button
+    fontSize: 18
   },
   signupText: {
     textAlign: 'center',
     marginTop: 20,
+    fontFamily: 'Raleway_400Regular', // Font for signup text
   },
   signupLink: {
-    color: 'black',
-    fontWeight: 'bold',
+    color: '#74112f',
+    fontFamily: 'Raleway_700Bold', // Ensure bold for Sign Up link
   },
   error: {
     color: 'red',
     textAlign: 'center',
     marginTop: 10,
+    fontFamily: 'Raleway_400Regular',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 5,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    fontFamily: 'Raleway_400Regular',
+  },
+  closeButton: {
+    backgroundColor: '#74112f',
+    padding: 10,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontFamily: 'Raleway_700Bold',
   },
 });
 
