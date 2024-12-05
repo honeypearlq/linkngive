@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,11 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // Back Button Icon
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
-import { app } from "../firebase"; // Firebase config file
+import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import SuccessNotificationModal from "./SuccessNotificationModal"; // Import the modal component
 
 const UploadItem = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -22,13 +22,34 @@ const UploadItem = ({ navigation }) => {
     itemName: "",
     location: "",
     message: "",
+    donorName: "",
   });
-  const [loading, setLoading] = useState(false); // Loading state for submission
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false); // State to control the modal visibility
 
-  const storage = getStorage(app);
-  const firestore = getFirestore(app);
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        const docSnap = await getDoc(userRef);
 
-  // Function to pick image from gallery
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setFormData((prevState) => ({
+            ...prevState,
+            donorName: data.name,
+          }));
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserName();
+  }, []);
+
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -39,7 +60,7 @@ const UploadItem = ({ navigation }) => {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const selectedImageUri = result.assets[0].uri; // Correct access to URI
+        const selectedImageUri = result.assets[0].uri;
         setFormData((prevState) => ({ ...prevState, photo: selectedImageUri }));
       } else {
         Alert.alert("No Image Selected", "Please select an image.");
@@ -49,60 +70,47 @@ const UploadItem = ({ navigation }) => {
     }
   };
 
-  // Function to handle input field changes
   const handleInputChange = (name, value) => {
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  // Function to handle the item submission
   const handleSubmit = async () => {
-    const { photo, itemName, location, message } = formData;
+    const { photo, itemName, location, message, donorName } = formData;
 
-    if (!photo || !itemName || !location) {
+    if (!photo || !itemName || !location || !donorName) {
       Alert.alert("Error", "Please fill in all required fields and upload an image.");
       return;
     }
 
-    setLoading(true); // Show loading indicator during submission
+    setLoading(true);
 
     try {
-      // Upload image to Firebase Storage
-      const imageRef = ref(storage, `uploads/${Date.now()}.jpg`);
-      const response = await fetch(photo);
-      const blob = await response.blob();
-      await uploadBytes(imageRef, blob);
-
-      // Get the download URL of the uploaded image
-      const downloadURL = await getDownloadURL(imageRef);
-
-      // Save item details in Firestore
-      await addDoc(collection(firestore, "donations"), {
+      await addDoc(collection(db, "donations"), {
         itemName,
         location,
         message,
-        photoURL: downloadURL,
+        donorName,
+        photoURL: photo,
         createdAt: new Date(),
       });
 
-      setLoading(false); // Hide loading indicator
-      Alert.alert("Success", "Your item has been uploaded!");
-      navigation.goBack(); // Navigate back after successful submission
+      setLoading(false);
+      setModalVisible(true); // Show success modal after upload
+      // navigation.goBack(); // Optionally, navigate back after success
     } catch (error) {
-      setLoading(false); // Hide loading indicator in case of error
+      setLoading(false);
       Alert.alert("Error", "Failed to upload the item. Please try again.");
-      console.error("Error uploading item:", error);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Header with back button */}
       <View style={styles.header}>
         <Ionicons
           name="chevron-back"
           size={30}
           color="#74112f"
-          onPress={() => navigation.goBack()} // Go back on press
+          onPress={() => navigation.goBack()}
         />
         <Text style={styles.title}>Upload an Item</Text>
       </View>
@@ -111,7 +119,6 @@ const UploadItem = ({ navigation }) => {
         Add a new item to donate. Upload an image, provide a description, and set your location.
       </Text>
 
-      {/* Image picker */}
       <TouchableOpacity onPress={pickImage} style={styles.imagePlaceholder}>
         {formData.photo ? (
           <Image source={{ uri: formData.photo }} style={styles.image} />
@@ -120,7 +127,6 @@ const UploadItem = ({ navigation }) => {
         )}
       </TouchableOpacity>
 
-      {/* Form inputs */}
       <TextInput
         style={styles.input}
         placeholder="Item Name"
@@ -134,6 +140,12 @@ const UploadItem = ({ navigation }) => {
         onChangeText={(value) => handleInputChange("location", value)}
       />
       <TextInput
+        style={styles.input}
+        placeholder="Donor's Name"
+        value={formData.donorName}
+        editable={false}
+      />
+      <TextInput
         style={[styles.input, styles.messageInput]}
         placeholder="Add a message (optional)"
         value={formData.message}
@@ -141,7 +153,6 @@ const UploadItem = ({ navigation }) => {
         multiline
       />
 
-      {/* Submit Button */}
       <TouchableOpacity
         style={styles.submitButton}
         onPress={handleSubmit}
@@ -154,10 +165,16 @@ const UploadItem = ({ navigation }) => {
         )}
       </TouchableOpacity>
 
-      {/* Cancel Button */}
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <Text style={styles.cancelText}>Cancel</Text>
       </TouchableOpacity>
+
+      {/* Success Modal */}
+      <SuccessNotificationModal
+        isModalVisible={modalVisible}
+        setIsModalVisible={setModalVisible}
+        message="Your item has been uploaded successfully!"
+      />
     </View>
   );
 };
