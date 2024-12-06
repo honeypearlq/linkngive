@@ -96,11 +96,15 @@ const UploadItem = ({ navigation }) => {
 
       setLoading(false);
       setModalVisible(true); // Show success modal after upload
-      // navigation.goBack(); // Optionally, navigate back after success
     } catch (error) {
       setLoading(false);
       Alert.alert("Error", "Failed to upload the item. Please try again.");
     }
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false); // 
+    navigation.navigate("DonateItem");
   };
 
   return (
@@ -174,6 +178,7 @@ const UploadItem = ({ navigation }) => {
         isModalVisible={modalVisible}
         setIsModalVisible={setModalVisible}
         message="Your item has been uploaded successfully!"
+        onClose={handleModalClose} // Pass the callback to navigate on modal close
       />
     </View>
   );

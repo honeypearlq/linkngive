@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const ItemInfo = ({ route, navigation }) => {
   const { item } = route.params; // Receive the item passed via route.params
-  const [isLiked, setIsLiked] = useState(false); 
+  const [isLiked, setIsLiked] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -17,7 +17,7 @@ const ItemInfo = ({ route, navigation }) => {
           onPress={() => {
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Home' }], 
+              routes: [{ name: 'Home' }],
             });
           }}
         />
@@ -28,7 +28,7 @@ const ItemInfo = ({ route, navigation }) => {
 
       {/* Description */}
       <View style={styles.textWrapper}>
-        <Text style={styles.welcomeText}>{item.name}</Text>
+        <Text style={styles.welcomeText}>{item.itemName}</Text> {/* Display the name of the item */}
         <Text style={styles.subText}>
           Check out this donated item. Message the giver for more information or save it for later by liking!
         </Text>
@@ -36,22 +36,29 @@ const ItemInfo = ({ route, navigation }) => {
 
       {/* Image Frame */}
       <View style={styles.imageContainer}>
+        {/* Use photoURL or a placeholder if photoURL is not available */}
         <Image
           style={styles.image}
-          source={{ uri: item.image || 'https://via.placeholder.com/150' }}
+          source={{ uri: item.photoURL || 'https://via.placeholder.com/150' }} 
         />
       </View>
 
       {/* Item Details */}
       <View style={styles.detailsContainer}>
         <Text style={styles.itemDetail}>
-          <Text style={styles.label}>Location:</Text> {item.location}
+          <Text style={styles.label}>Location:</Text> {item.location} {/* Display item location */}
         </Text>
         <Text style={styles.itemDetail}>
-          <Text style={styles.label}>Distance:</Text> 2.3 km
+          <Text style={styles.label}>Distance:</Text> {item.distance} km {/* Display distance */}
         </Text>
         <Text style={styles.itemDetail}>
-          <Text style={styles.label}>Donor Name:</Text> {item.sender}
+          <Text style={styles.label}>Donor Name:</Text> {item.sender} {/* Display donor name */}
+        </Text>
+        <Text style={styles.itemDetail}>
+          <Text style={styles.label}>Date:</Text> 
+          {item.createdAt 
+            ? new Date(item.createdAt.seconds * 1000).toLocaleString() 
+            : 'N/A'}
         </Text>
       </View>
 
@@ -82,12 +89,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
   },
   headerTitleContainer: {
-    flex: 1, 
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -95,9 +102,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: 'Raleway_700Bold',
     color: '#2f332a',
-    borderBottomColor: '#74112f', 
+    borderBottomColor: '#74112f',
     borderBottomWidth: 5,
-    textAlign: 'center', 
+    textAlign: 'center',
     width: '40%',
     paddingBottom: 5,
     marginRight: 35,
@@ -109,14 +116,14 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 24,
-    fontFamily: 'Raleway_700Bold', 
+    fontFamily: 'Raleway_700Bold',
     color: '#2f332a',
     marginBottom: 5,
     textAlign: 'center',
   },
   subText: {
     fontSize: 16,
-    fontFamily: 'Raleway_400Regular', 
+    fontFamily: 'Raleway_400Regular',
     color: '#888',
     textAlign: 'center',
   },
@@ -138,49 +145,44 @@ const styles = StyleSheet.create({
   },
   itemDetail: {
     fontSize: 16,
-    fontFamily: 'Raleway_400Regular', 
+    fontFamily: 'Raleway_400Regular',
     color: '#333',
     marginBottom: 10,
   },
   label: {
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'Raleway_700Bold', 
+    fontFamily: 'Raleway_700Bold',
   },
   buttonsContainer: {
-    flexDirection: 'row', 
-    justifyContent: 'center', 
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
   },
   actionButton: {
     backgroundColor: '#74112f',
-    borderRadius: 10, 
+    borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 30, 
+    paddingHorizontal: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10, 
+    marginRight: 10,
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: 'bold', 
-    color: '#fff', 
+    fontWeight: 'bold',
+    color: '#fff',
   },
   likeButton: {
     backgroundColor: '#fff',
-    borderRadius: 25, 
-    width: 40, 
+    borderRadius: 25,
+    width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#74112f',
-  },
-  heartText: {
-    fontSize: 20,
-    color: '#74112f',
-    fontWeight: 'bold',
   },
 });
 

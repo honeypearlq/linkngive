@@ -1,55 +1,51 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // For the eye icon
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../firebase'; // Ensure correct import for db
-import { doc, setDoc, collection } from 'firebase/firestore'; // Ensure correct import for Firestore
+import { auth, db } from '../firebase'; // Ensure firebase config is properly set up
+import { doc, setDoc, collection } from 'firebase/firestore';
 
 const SignUp = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [error, setError] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
-  // Validate form before submission
   const validateForm = () => {
-    if (!name) {
-      Alert.alert("Validation Error", "Please enter your name.");
+    if (name.length < 10 || name.length > 20) {
+      setError('Name must be between 10 and 20 characters.');
       return false;
     }
-
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!email || !emailRegex.test(email)) {
-      Alert.alert("Validation Error", "Please enter a valid email.");
+      setError('Please enter a valid email.');
       return false;
     }
-
     if (password.length < 6) {
-      Alert.alert("Validation Error", "Password must be at least 6 characters long.");
+      setError('Password must be at least 6 characters long.');
       return false;
     }
-
     return true;
   };
 
-  // Handle SignUp process
   const handleSignUp = async () => {
+    setError('');
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    setModalVisible(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Create a document in Firestore for the new user
-      const userRef = doc(collection(db, "users"), user.uid);
-
+      const userRef = doc(collection(db, 'users'), user.uid);
       await setDoc(userRef, {
-        name: name,
-        email: email,
+        name,
+        email,
         phone: '',
         address: '',
         profileImage: '',
@@ -57,13 +53,18 @@ const SignUp = () => {
       });
 
       console.log('User signed up and data saved:', user);
-      Alert.alert("Success", "Account created successfully!");
-      navigation.navigate('Home'); // Navigate to the Home page
+      setSuccessModalVisible(true);
+      setTimeout(() => {
+        setSuccessModalVisible(false);
+        navigation.replace('MainApp'); // Navigate to MainApp after signup
+      }, 3000);
     } catch (error) {
       console.error('Error signing up:', error.code, error.message);
-      Alert.alert("Error Signing Up", error.message);
+      setError(error.code === 'auth/email-already-in-use'
+        ? 'This email is already in use.'
+        : error.message);
     } finally {
-      setIsLoading(false);
+      setModalVisible(false);
     }
   };
 
@@ -73,7 +74,6 @@ const SignUp = () => {
         <Text style={styles.logoText}>LINK 'N' GIVE</Text>
       </View>
       <Text style={styles.title}>Empower Generosity, Together</Text>
-
       <View style={styles.signupForm}>
         <TextInput
           placeholder=" Name"
@@ -97,29 +97,20 @@ const SignUp = () => {
             style={styles.passwordField}
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Ionicons
-              name={passwordVisible ? 'eye-off' : 'eye'}
-              size={24}
-              color="#777"
-              style={styles.eyeIcon}
-            />
+            <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="#777" />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleSignUp} style={styles.submitButton} disabled={isLoading}>
-          {isLoading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.submitButtonText}>SIGN UP</Text>
-          )}
+        <TouchableOpacity onPress={handleSignUp} style={styles.submitButton}>
+          <Text style={styles.submitButtonText}>SIGN UP</Text>
         </TouchableOpacity>
       </View>
-
       <Text style={styles.footerText}>
         Already have an account?{' '}
         <Text style={styles.linkText} onPress={() => navigation.navigate('Login')}>
           Log In
         </Text>
       </Text>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
 };
@@ -194,6 +185,34 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#74112f',
+    fontFamily: 'Raleway_700Bold',
+  },
+  error: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 10,
+    fontFamily: 'Raleway_400Regular',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#74112f',
+  },
+  successText: {
+    fontSize: 18,
+    color: '#2f332a',
     fontFamily: 'Raleway_700Bold',
   },
 });

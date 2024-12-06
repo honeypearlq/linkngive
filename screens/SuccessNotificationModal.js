@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const SuccessNotificationModal = ({ isModalVisible, setIsModalVisible, message }) => {
+const SuccessNotificationModal = ({ isModalVisible, setIsModalVisible, message, onClose }) => {
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={isModalVisible}
-      onRequestClose={() => setIsModalVisible(false)}
+      onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <Ionicons name="checkmark-circle-outline" size={60} color="#74112f" />
           <Text style={styles.modalText}>{message}</Text>
-          <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.closeButton}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>OK</Text>
           </TouchableOpacity>
         </View>

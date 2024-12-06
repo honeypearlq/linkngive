@@ -2,51 +2,63 @@ import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { getFirestore, collection, onSnapshot } from "firebase/firestore";
 import { app } from "../firebase"; // Firebase config file
+import { useNavigation } from "@react-navigation/native"; // Import useNavigation
 
 const FindNearbyDonations = () => {
   const [donations, setDonations] = useState([]);
-  const [sortType, setSortType] = useState("nearest"); // Default sorting by nearest
+  const [sortType, setSortType] = useState("nearest");
   const firestore = getFirestore(app);
+  const navigation = useNavigation(); // Use navigation hook
 
   useEffect(() => {
     const donationsRef = collection(firestore, "donations");
 
-    // Real-time listener
     const unsubscribe = onSnapshot(donationsRef, (snapshot) => {
       const donationList = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setDonations(donationList);
+
+      // Initial sorting (based on 'nearest')
+      sortDonations("nearest", donationList);
     });
 
-    // Clean up listener on unmount
     return () => unsubscribe();
   }, []);
 
-  const sortDonations = (type) => {
+  const sortDonations = (type, donationList = donations) => {
     setSortType(type);
-    const sortedDonations = [...donations];
+    const sortedDonations = [...donationList];
+  
     if (type === "nearest") {
       sortedDonations.sort((a, b) => a.distance - b.distance);
-    } else if (type === "newest") {
-      sortedDonations.sort((a, b) => new Date(b.date) - new Date(a.date));
-    } else if (type === "oldest") {
-      sortedDonations.sort((a, b) => new Date(a.date) - new Date(b.date));
+    } else if (type === "newest" || type === "oldest") {
+      sortedDonations.sort((a, b) => {
+        // Ensure date is a valid Firestore Timestamp and convert it to Date
+        const dateA = a.createdAt instanceof Object && a.createdAt.seconds 
+          ? a.createdAt.toDate()  // Firestore Timestamp to Date
+          : new Date(0);  // Default to epoch if no valid date
+        const dateB = b.createdAt instanceof Object && b.createdAt.seconds 
+          ? b.createdAt.toDate()  // Firestore Timestamp to Date
+          : new Date(0);  // Default to epoch if no valid date
+  
+        return type === "newest"
+          ? dateB - dateA  // Newest first
+          : dateA - dateB; // Oldest first
+      });
     }
-    setDonations(sortedDonations); // Update the donations state after sorting
-  };
+  
+    setDonations(sortedDonations);
+  };  
 
   const handleItemPress = (item) => {
-    // Navigate to ItemInfo screen on item press (you can modify this navigation logic)
-    // navigation.navigate("ItemInfo", { item });
+    navigation.navigate("ItemInfo", { item }); // Navigate and pass the item
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Find Nearby Donations</Text>
       <View style={styles.sortWrapper}>
-        {/* Sorting buttons */}
         <TouchableOpacity
           style={[styles.sortButton, sortType === "nearest" && styles.activeSort]}
           onPress={() => sortDonations("nearest")}
@@ -72,16 +84,13 @@ const FindNearbyDonations = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleItemPress(item)}>
-            {/* Add TouchableOpacity for click */}
             <View style={styles.donationItem}>
               <View style={styles.donationContent}>
                 <Image source={{ uri: item.photoURL }} style={styles.donationImage} />
                 <View style={styles.textContent}>
                   <Text style={styles.donationName}>{item.itemName}</Text>
                   <View style={styles.locationWrapper}>
-                    <View style={styles.locationSticker}>
-                      <Text style={styles.locationText}>📍</Text>
-                    </View>
+                    <Text style={styles.locationIcon}>📍</Text>
                     <Text style={styles.donationLocation}>{item.location}</Text>
                   </View>
                   <Text style={styles.donationDistance}>{item.distance} km away</Text>
@@ -199,6 +208,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     color: "#7a7a7a",
+    fontFamily: "Raleway_400Regular",
   },
 });
 

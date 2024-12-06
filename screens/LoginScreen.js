@@ -36,24 +36,29 @@ const LoginScreen = ({ navigation }) => {
       setError('Please fill out both fields.');
       return;
     }
-
+  
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in successfully');
-      navigation.navigate('Home');
+      // Navigate to MainApp (adjust based on your navigator name)
+      navigation.replace('MainApp'); // Replacing to clear login from navigation stack
     } catch (err) {
-      if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password. Please try again.');
-      } else if (err.code === 'auth/user-not-found') {
-        setError('No user found with this email.');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Invalid email format.');
-      } else {
-        setError('Failed to log in. Please try again.');
+      switch (err.code) {
+        case 'auth/wrong-password':
+          setError('Incorrect password. Please try again.');
+          break;
+        case 'auth/user-not-found':
+          setError('No user found with this email.');
+          break;
+        case 'auth/invalid-email':
+          setError('Invalid email format.');
+          break;
+        default:
+          setError('Failed to log in. Please try again.');
       }
       console.error('Error logging in:', err);
     }
-  };
+  };  
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -103,14 +108,12 @@ const LoginScreen = ({ navigation }) => {
 
       {/* Position Remember Me on the left */}
       <View style={styles.checkboxContainer}>
-        <View style={styles.leftSideContainer}>
-          <Checkbox
-            value={rememberMe}
-            onValueChange={setRememberMe}
-            style={styles.checkbox}
-          />
-          <Text style={styles.label}>Remember Me</Text>
-        </View>
+        <Checkbox
+          value={rememberMe}
+          onValueChange={setRememberMe}
+          style={styles.checkbox}
+        />
+        <Text style={styles.label}>Remember Me</Text>
       </View>
 
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
@@ -191,18 +194,12 @@ const styles = StyleSheet.create({
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', 
     marginBottom: 20,
-  },
-  leftSideContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   checkbox: {
     marginRight: 10,
   },
   label: {
-    marginRight: 20,
     fontFamily: 'Raleway_400Regular', 
   },
   forgotPassword: {
