@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Modal, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -70,8 +70,12 @@ const SignUp = () => {
 
   return (
     <View style={styles.signupContainer}>
+      {/* Logo at the top */}
       <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>LINK 'N' GIVE</Text>
+        <Image
+          source={require('../assets/logo.png')} // Replace with the correct path to your logo
+          style={styles.logo}
+        />
       </View>
       <Text style={styles.title}>Empower Generosity, Together</Text>
       <View style={styles.signupForm}>
@@ -126,11 +130,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2f332a',
-    fontFamily: 'Raleway_700Bold',
+  logo: {
+    width: 120, // Adjust the width of the logo
+    height: 120, // Adjust the height of the logo
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 24,
@@ -192,28 +195,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     fontFamily: 'Raleway_400Regular',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  modalText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#74112f',
-  },
-  successText: {
-    fontSize: 18,
-    color: '#2f332a',
-    fontFamily: 'Raleway_700Bold',
   },
 });
 

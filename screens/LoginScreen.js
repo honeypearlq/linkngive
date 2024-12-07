@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Alert, Image } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';  
@@ -40,7 +40,6 @@ const LoginScreen = ({ navigation }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('User signed in successfully');
-      // Navigate to MainApp (adjust based on your navigator name)
       navigation.replace('MainApp'); // Replacing to clear login from navigation stack
     } catch (err) {
       switch (err.code) {
@@ -83,7 +82,11 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Log In title */}
+      {/* Add a logo above the title */}
+      <Image
+        source={require('../assets/logo.png')} // Replace with the correct path to your logo
+        style={styles.logo}
+      />
       <Text style={styles.title}>Log In to Empower Generosity</Text>
 
       <TextInput
@@ -106,7 +109,6 @@ const LoginScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Position Remember Me on the left */}
       <View style={styles.checkboxContainer}>
         <Checkbox
           value={rememberMe}
@@ -120,12 +122,10 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.loginText}>LOGIN</Text>
       </TouchableOpacity>
 
-      {/* Forgot Password link now under login button */}
       <TouchableOpacity onPress={handleForgotPassword}>
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
       </TouchableOpacity>
 
-      {/* Don't have an account? */}
       <Text style={styles.signupText}>
         Don't have an account?{' '}
         <Text style={styles.signupLink} onPress={() => navigation.navigate('SignUp')}>
@@ -135,7 +135,6 @@ const LoginScreen = ({ navigation }) => {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {/* Modal for confirmation of password reset email */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -161,6 +160,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
     backgroundColor: '#faf4f2', 
+  },
+  logo: {
+    width: 100, // Adjust size as necessary
+    height: 100,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
